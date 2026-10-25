@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>SkyLink – Airline Operations Demo</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600&family=Barlow+Condensed:wght@500;700&family=Audiowide&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>#lm,#nm{isolation:isolate;position:relative}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#0a0506;--card:#170d0f;--tx:#f6ecec;--mut:#bfa3a5;--ac:#ff3d4a;--ac2:#2b1115;--bd:#4a1f25;--ok:#4fd1a1;--bad:#ff9a8f;--warn:#ffc94d;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:radial-gradient(900px 500px at 90% -5%,#6b0f1a 0,transparent 65%),radial-gradient(700px 500px at -5% 105%,#4a0a12 0,transparent 60%),linear-gradient(165deg,#000 0%,#150506 55%,#2e070c 100%);background-attachment:fixed;background-color:var(--bg);color:var(--tx);font:16px/1.5 Barlow,system-ui,Segoe UI,sans-serif}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--card)}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:11;background:linear-gradient(90deg,#000 0%,#1c070a 55%,#5e0d17 100%);border-bottom:1px solid #7a1822;display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;padding:8px 14px}
+.brand{font:400 30px Audiowide,"Barlow Condensed",sans-serif;letter-spacing:2px;margin-right:auto;cursor:pointer;color:#fff;text-shadow:0 0 18px rgba(255,45,60,.55)}
+.brand b,.logo b{font-weight:400;background:linear-gradient(90deg,#ff3d4a,#ff8a3d);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:none}
+.hero{text-align:center;padding:34px 0 10px}.logo{font:400 clamp(56px,16vw,120px)/1.05 Audiowide,sans-serif;letter-spacing:3px;color:#fff;text-shadow:0 0 40px rgba(255,45,60,.45)}.sub{color:var(--mut);letter-spacing:6px;text-transform:uppercase;font-size:14px;margin:6px 0 18px}
+nav{display:flex;flex-wrap:wrap;gap:4px}
+nav button,.lk{background:none;border:0;color:var(--ac);font:600 15px Barlow,sans-serif;padding:8px 10px;border-radius:8px;cursor:pointer}
+nav button[aria-current="page"]{background:var(--ac2)}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+.demo{background:var(--ac2);color:var(--tx);font-size:14px;padding:6px 14px;text-align:center}
+main{max-width:980px;margin:0 auto;padding:18px 14px 40px}
+h1{font:700 clamp(30px,6vw,46px)/1.05 "Barlow Condensed",sans-serif;margin:8px 0 6px}
+h2{font:700 24px "Barlow Condensed",sans-serif;margin:22px 0 8px}
+.m{color:var(--mut);font-size:14px;margin:4px 0}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:14px;margin:10px 0}
+.sf{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;align-items:end;margin:14px 0}
+label{display:flex;flex-direction:column;gap:3px;font-size:14px;color:var(--mut)}
+input,select{font:16px Barlow,sans-serif;padding:9px;border:1px solid var(--bd);border-radius:8px;background:var(--card);color:var(--tx);min-height:44px}
+.bt{background:linear-gradient(135deg,#ff3d4a,#b0001a);color:#fff;border:0;border-radius:8px;font:600 16px Barlow,sans-serif;padding:10px 16px;min-height:44px;cursor:pointer}
+.bt.g{background:none;color:var(--ac);border:1px solid var(--ac)}
+.bt.r{background:none;color:var(--bad);border:1px solid var(--bad)}
+.bt:disabled{opacity:.5;cursor:not-allowed}
+.board{background:linear-gradient(180deg,#050203,#1a070b);border:1px solid #5e0d17;color:#ffd166;font-family:"Barlow Condensed",sans-serif;border-radius:10px;padding:4px 14px;margin:10px 0}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(105px,1fr));gap:4px 10px;align-items:center;padding:12px 0;border-bottom:1px solid #3a161b;font-size:21px;font-weight:500}
+.row:last-child{border:0}
+.row small{display:block;font:400 13px Barlow,sans-serif;color:#d2aeb0}
+.st{font-weight:700}.st.scheduled,.st.boarding{color:#f5c400}.st.delayed{color:#ff9d3d}.st.cancelled{color:#ff7b70;text-decoration:line-through}.st.departed,.st.arrived{color:#62d9a8}
+.row .bt{font-size:15px;padding:6px 12px;min-height:38px}
+.bar{height:10px;background:var(--ac);border-radius:5px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--bd);vertical-align:top}
+.wrap{overflow-x:auto}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.stats b{display:block;font:700 34px "Barlow Condensed",sans-serif}
+.pass{border:2px dashed var(--bd);border-radius:12px;padding:16px;background:var(--card)}
+.err{color:var(--bad);font-weight:600;min-height:22px}
+.ok{color:var(--ok);font-weight:600}
+.tag{display:inline-block;padding:2px 10px;border-radius:99px;border:1px solid currentColor;background:var(--ac2);font-weight:600;font-size:14px}
+.tag.free{color:var(--ok)}.tag.few{color:var(--warn)}.tag.full{color:var(--bad)}
+.meter{height:10px;background:var(--bd);border-radius:5px;overflow:hidden;margin:8px 0}
+.meter i{display:block;height:100%;background:var(--ok)}.meter i.few{background:var(--warn)}.meter i.full{background:var(--bad)}
+.leaflet-tooltip.apl{background:none;border:0;box-shadow:none;font:700 12px Barlow,sans-serif;color:#fff;text-shadow:0 0 3px #000,0 0 3px #000;padding:0}
+.leaflet-tooltip.apl::before{display:none}
+@media print{header,.demo,.noprint,footer{display:none}body{background:#fff;color:#000}.pass{background:#fff;color:#000;border-color:#000}}
+</style>
+</head>
+<body>
+<header><div class="brand" onclick="go('home')">Sky<b>Link</b></div><nav id="nav" aria-label="Main"></nav></header>
+<div class="demo">Demo site: sample schedule only. No real tickets, payments or live flight data. Your changes stay in this browser.</div>
+<main id="main"></main>
+<footer class="m" style="text-align:center;padding:0 14px 30px">Accounts and bookings are stored only in this browser. Sample schedule, no real tickets. <button class="lk" onclick="reset()">Reset demo data</button></footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const T="Asia/Kolkata",A=(n,c,la,lo)=>({n,c,la,lo,tz:T});
+const AP={DEL:A("Indira Gandhi International","Delhi",28.56,77.1),BOM:A("Chhatrapati Shivaji Maharaj International","Mumbai",19.09,72.87),BLR:A("Kempegowda International","Bengaluru",13.2,77.71),MAA:A("Chennai International","Chennai",12.99,80.17),HYD:A("Rajiv Gandhi International","Hyderabad",17.24,78.43),CCU:A("Netaji Subhas Chandra Bose International","Kolkata",22.65,88.45),AMD:A("Sardar Vallabhbhai Patel International","Ahmedabad",23.07,72.63),GOI:A("Goa International (Dabolim)","Goa",15.38,73.83),COK:A("Cochin International","Kochi",10.15,76.4),JAI:A("Jaipur International","Jaipur",26.82,75.81),GAU:A("Lokpriya Gopinath Bordoloi International","Guwahati",26.11,91.59),LKO:A("Chaudhary Charan Singh International","Lucknow",26.76,80.88)};
+const PR=[["DEL","BOM"],["DEL","BLR"],["BOM","BLR"],["BLR","MAA"],["HYD","CCU"],["DEL","GAU"],["BOM","GOI"],["DEL","LKO"],["BLR","COK"],["AMD","DEL"]];
+const RT=PR.flatMap(([a,b])=>[[a,b],[b,a]]);
+const AC=[{id:"VT-SLA",t:"Airbus A320",cap:180,st:"active"},{id:"VT-SLB",t:"Airbus A320",cap:180,st:"active"},{id:"VT-SLC",t:"Airbus A320",cap:180,st:"active"},{id:"VT-SLD",t:"ATR 72",cap:70,st:"active"},{id:"VT-SLE",t:"ATR 72",cap:70,st:"active"},{id:"VT-SLF",t:"Airbus A321",cap:220,st:"active"},{id:"VT-SLG",t:"Airbus A321",cap:220,st:"maintenance"}];
+const MEALS=["No meal","Vegetarian thali","Chicken curry and rice","Vegan bowl"];
+const BAG={ECO:"15 kg checked, 7 kg cabin",BUS:"30 kg checked, 10 kg cabin"};
+const km=(a,b)=>{const r=Math.PI/180,A=AP[a],B=AP[b],h=Math.sin((B.la-A.la)*r/2)**2+Math.cos(A.la*r)*Math.cos(B.la*r)*Math.sin((B.lo-A.lo)*r/2)**2;return Math.round(12742*Math.asin(Math.sqrt(h)))};
+const fmt=(ms,tz,o)=>new Intl.DateTimeFormat("en-GB",Object.assign({timeZone:tz},o)).format(ms);
+const hm=(ms,tz)=>fmt(ms,tz,{hour:"2-digit",minute:"2-digit",hour12:false});
+const dm=(ms,tz)=>fmt(ms,tz,{day:"2-digit",month:"short"});
+const dk=(ms,tz)=>new Intl.DateTimeFormat("en-CA",{timeZone:tz}).format(ms);
+const inr=n=>"₹"+Math.round(n).toLocaleString("en-IN");
+const dur=m=>Math.floor(m/60)+"h "+String(m%60).padStart(2,"0")+"m";
+const clash=(fl,ac,d,a,skip)=>fl.find(f=>f.id!==skip&&f.ac===ac&&f.s!=="cancelled"&&d<f.arr+36e5&&f.dep<a+36e5);
+const mk=(ac,base,bk)=>{const bus=ac.cap>=180?16:6;return{ECO:{cap:ac.cap-bus,bk:bk[0],fare:base},BUS:{cap:bus,bk:bk[1],fare:Math.round(base*2.5/10)*10}}};
+function seed(){const fl=[],t=new Date();t.setUTCHours(0,0,0,0);let id=1;
+RT.forEach(([a,b],i)=>{const d0=km(a,b),m=Math.round(d0/780*60+30),base=Math.round((d0*4.5+1800)/10)*10;
+for(let d=0;d<7;d++){const dep=t.getTime()+d*864e5+((i*61+120)%1300)*6e4,arr=dep+m*6e4;if(dep<Date.now())continue;
+const ac=AC.find(x=>x.st==="active"&&!clash(fl,x.id,dep,arr));if(!ac)continue;
+fl.push({id:id++,no:"SL"+(100+i),a,b,dep,arr,ac:ac.id,s:"scheduled",rs:"",eta:0,cls:mk(ac,base,[(i*7+d*11)%35,(i+d)%4])})}});
+return{flights:fl,bookings:[],user:null,users:[],log:[],hotels:seedHotels(),stays:[]}}
+function seedHotels(){const h=[];Object.keys(AP).forEach((c,i)=>{[["Rest Inn",14+i%5*2],["Transit Suites",22+i%4*3]].forEach(([n,r],j)=>{const f=4+i%3*2;h.push({id:c+j,ap:c,name:AP[c].c+" Airport "+n,dist:2+((i*3+j*4)%8),types:[{k:"STD",n:"Standard room",sleeps:2,rooms:r,used:j?r-(i%3):Math.floor(r*.4)},{k:"FAM",n:"Family room",sleeps:4,rooms:f,used:j?f-(i%2):Math.floor(f*.3)}]})})});return h}
+const KEY="skylink-v2";
+function load(){try{const r=localStorage.getItem(KEY);if(r){const d=JSON.parse(r);if(!d.hotels||!d.hotels[0]||!d.hotels[0].types){d.hotels=seedHotels();d.stays=[]}if(!d.stays)d.stays=[];return d}}catch(e){}return seed()}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+let S=load(),v={n:"home"};
+const Q={a:"",b:"",date:"",pax:1,st:"all",sort:"dep"};
+const fl=id=>S.flights.find(f=>f.id===id);
+const left=f=>Object.values(f.cls).reduce((s,c)=>s+c.cap-c.bk,0);
+const minf=f=>Math.min(...Object.values(f.cls).map(c=>c.fare));
+const uid=()=>S.user.id;const isA=()=>S.user&&S.user.role==="admin";const deny=()=>`<div class="card">Admin sign-in required.</div>`;const lg=a=>{S.log.push({t:Date.now(),by:S.user.id,a});S.log=S.log.slice(-50)};
+const go=(n,x)=>{v={n,x};render();scrollTo(0,0)};
+async function reset(){S=seed();v={n:"land"};try{if(OKC())S.users.push(await mkUser({id:"admin",name:"Administrator",role:"admin",pw:"Admin@123"}))}catch(e){}save();render()}
+function badge(f){return `<span class="st ${f.s}">${f.s[0].toUpperCase()+f.s.slice(1)}</span>`}
+function form(){const o=s=>`<option value="">Any airport</option>`+Object.keys(AP).map(c=>`<option value="${c}"${s===c?" selected":""}>${c} ${AP[c].c}</option>`).join("");
+return `<form class="sf" onsubmit="return find(event)"><label>From<select id="qa">${o(Q.a)}</select></label><label>To<select id="qb">${o(Q.b)}</select></label><label>Date (local to departure)<input id="qd" type="date" value="${Q.date}"></label><label>Passengers<input id="qp" type="number" min="1" max="6" value="${Q.pax}"></label><button class="bt">Find flights</button></form><div class="err" id="qe"></div>`}
+function find(e){e.preventDefault();const a=$("#qa").value,b=$("#qb").value,p=parseInt($("#qp").value,10);
+if(a&&a===b){$("#qe").textContent="Choose different departure and arrival airports.";return false}
+if(!(p>=1&&p<=6)){$("#qe").textContent="Passengers must be between 1 and 6.";return false}
+Object.assign(Q,{a,b,date:$("#qd").value,pax:p});go("res");return false}
+function times(f){const A=AP[f.a],B=AP[f.b];return `${hm(f.dep,A.tz)} ${f.a}<small>${dm(f.dep,A.tz)}, local time</small>`}
+const VIEWS={
+home(){const u=S.user;return `<h1>Find a flight on the SkyLink demo network</h1><p class="m">Twelve airports, twenty routes and seven days of sample departures. Times show in each airport’s own time zone.</p>${form()}
+<div class="card">${u?`<b>Signed in as ${esc(u.name)}</b> (${u.role}). `+(u.role==="admin"?`<button class="bt g" onclick="go('adm')">Open admin dashboard</button>`:`<button class="bt g" onclick="go('my')">View my bookings</button> <button class="bt g" onclick="go('htl')">Free airline hotels</button>`):`<b>Sign in to book or manage flights</b><p><button class="bt" onclick="go('login')">Sign in</button> <button class="bt g" onclick="go('reg')">Create account</button></p>`}</div>`},
+res(){let r=S.flights.filter(f=>(!Q.a||f.a===Q.a)&&(!Q.b||f.b===Q.b)&&(!Q.date||dk(f.dep,AP[f.a].tz)===Q.date)&&(Q.st==="all"||f.s===Q.st)&&left(f)>=Q.pax);
+r.sort(Q.sort==="fare"?(x,y)=>minf(x)-minf(y):Q.sort==="dur"?(x,y)=>(x.arr-x.dep)-(y.arr-y.dep):(x,y)=>x.dep-y.dep);
+const so=(k,t)=>`<option value="${k}"${Q.sort===k?" selected":""}>${t}</option>`;
+return `<h1>Departures</h1>${form()}<div class="sf"><label>Status<select onchange="Q.st=this.value;render()">${["all","scheduled","delayed","cancelled"].map(s=>`<option value="${s}"${Q.st===s?" selected":""}>${s[0].toUpperCase()+s.slice(1)}</option>`).join("")}</select></label><label>Sort by<select onchange="Q.sort=this.value;render()">${so("dep","Departure time")}${so("fare","Lowest fare")}${so("dur","Shortest duration")}</select></label></div>
+${r.length?`<div class="board" role="list">${r.slice(0,40).map(f=>`<div class="row" role="listitem"><div>${f.no}<small>${f.a} to ${f.b}</small></div><div>${times(f)}</div><div>${hm(f.arr,AP[f.b].tz)} ${f.b}<small>${dur(Math.round((f.arr-f.dep)/6e4))}</small></div><div>from ${inr(minf(f))}<small>${left(f)} seats left</small></div><div>${badge(f)}</div><div><button class="bt" onclick="go('det',${f.id})">Details</button></div></div>`).join("")}</div>`:`<div class="card">No flights match. Try another date, remove a filter, or choose fewer passengers.</div>`}`},
+det(){const f=fl(v.x),A=AP[f.a],B=AP[f.b],u=S.user,open=!["cancelled","departed","arrived"].includes(f.s)&&f.dep>Date.now(),ac=AC.find(x=>x.id===f.ac);
+const eta=f.eta?`<p>Estimated departure ${hm(f.dep+f.eta,A.tz)} (${f.rs?esc(f.rs):"delay"}). Scheduled and estimated times are kept separate.</p>`:"";
+const pax=Array.from({length:Q.pax},(_,i)=>`<div class="sf"><label>Passenger ${i+1} full name<input id="pn${i}" maxlength="60"></label><label>Meal<select id="pm${i}">${MEALS.map(m=>`<option>${m}</option>`).join("")}</select></label></div>`).join("");
+return `<button class="lk" onclick="go('res')">Back to results</button><h1>${f.no}: ${A.c} to ${B.c}</h1><p>${badge(f)} ${f.s==="cancelled"?esc(f.rs):""}</p>
+<div class="card"><b>Departs</b> ${hm(f.dep,A.tz)} on ${dm(f.dep,A.tz)}, ${esc(A.n)} (${f.a}, ${A.tz})<br><b>Arrives</b> ${hm(f.arr,B.tz)} on ${dm(f.arr,B.tz)}, ${esc(B.n)} (${f.b}, ${B.tz})<br><b>Duration</b> ${dur(Math.round((f.arr-f.dep)/6e4))}, ${km(f.a,f.b)} km<br><b>Aircraft</b> ${ac.t}, ${ac.id}${eta}</div><div id="lm" style="height:340px;border-radius:10px"></div><p class="m">Planned route between airports on a simplified map of India. This is not live aircraft tracking. Base map © OpenStreetMap contributors © CARTO when online.</p>
+<h2>Classes and services</h2><div class="wrap"><table><tr><th>Class</th><th>Fare</th><th>Seats left</th><th>Baggage (sample policy)</th></tr>${Object.entries(f.cls).map(([k,c])=>`<tr><td>${k==="ECO"?"Economy":"Business"}</td><td>${inr(c.fare)}</td><td>${c.cap-c.bk} of ${c.cap}</td><td>${BAG[k]}</td></tr>`).join("")}</table></div><p class="m">Sample meals: ${MEALS.slice(1).join(", ")}.</p>
+<h2>Book this flight</h2>${!open?`<div class="card">This flight can’t be booked.</div>`:!u||u.role!=="customer"?`<div class="card">Sign in or create a customer account to book. <button class="bt" onclick="go('login')">Sign in</button> <button class="bt g" onclick="go('reg')">Create account</button></div>`:`<div class="card"><label style="max-width:260px">Class<select id="cl">${Object.keys(f.cls).map(k=>`<option value="${k}">${k==="ECO"?"Economy":"Business"} at ${inr(f.cls[k].fare)}</option>`).join("")}</select></label>${pax}<p class="m">${Q.pax} passenger(s). Change the number on the search form. Demo booking: no payment is taken.</p><div class="err" id="err"></div><button class="bt" onclick="book(${f.id})">Confirm demo booking</button></div>`}`},
+conf(){const b=S.bookings.find(x=>x.ref===v.x),f=fl(b.fid),A=AP[f.a],B=AP[f.b];
+return `<div class="pass"><h1>Booking ${b.ref}</h1><p><b>${f.no}</b> ${A.c} (${f.a}) to ${B.c} (${f.b})<br>Departs ${hm(f.dep,A.tz)}, ${dm(f.dep,A.tz)} local. Arrives ${hm(f.arr,B.tz)}, ${dm(f.arr,B.tz)} local.<br>Class ${b.k==="ECO"?"Economy":"Business"}. Status: ${b.s}${b.s==="cancelled"?`, ${b.pct}% demo refund of ${inr(b.fare*b.pax.length*b.pct/100)}`:""}</p><ul>${b.pax.map(p=>`<li>${esc(p.n)} (${esc(p.m)})</li>`).join("")}</ul><p><b>Total ${inr(b.fare*b.pax.length)}</b></p><p class="m">Demo confirmation only. This is not an airline ticket.</p></div><p class="noprint"><button class="bt" onclick="try{print()}catch(e){}">Print confirmation</button> <button class="bt g" onclick="go('my')">My bookings</button></p>`},
+my(){const u=S.user;if(!u||u.role!=="customer")return `<div class="card">Sign in as a customer to see your bookings.</div>`;
+const r=S.bookings.filter(b=>b.uid===uid()).sort((a,b)=>b.at-a.at);
+return `<h1>My bookings</h1><p class="m">Cancellation rule (demo): 100% refund 24 hours or more before departure, 50% inside 24 hours, none after departure.</p>${r.length?r.map(b=>{const f=fl(b.fid);return `<div class="card"><b>${b.ref}</b>, ${f.no} ${f.a} to ${f.b}, ${dm(f.dep,AP[f.a].tz)} ${hm(f.dep,AP[f.a].tz)}<br>${b.pax.length} passenger(s), ${inr(b.fare*b.pax.length)}. Status: <b>${b.s}</b> <button class="bt g" onclick="go('conf','${b.ref}')">View</button> ${b.s==="confirmed"&&f.dep>Date.now()?`<button class="bt r" onclick="cancel('${b.ref}')">Cancel booking</button>`:""}</div>`}).join(""):`<div class="card">No bookings yet. Search for a flight to make your first demo booking.</div>`}`},
+adm(){const u=S.user;if(!u||u.role!=="admin")return `<div class="card">Admin sign-in required.</div>`;
+const live=S.flights.filter(f=>f.s!=="cancelled"),T=x=>dk(Date.now(),AP[x.a].tz),cnt=s=>S.flights.filter(f=>f.s===s).length,cb=S.bookings.filter(b=>b.s==="confirmed");
+const cap=live.reduce((s,f)=>s+Object.values(f.cls).reduce((t,c)=>t+c.cap,0),0),bk=live.reduce((s,f)=>s+Object.values(f.cls).reduce((t,c)=>t+c.bk,0),0);
+const pop=RT.map(([a,b])=>({k:a+" to "+b,fl:live.filter(f=>f.a===a&&f.b===b).length,px:cb.filter(x=>fl(x.fid).a===a&&fl(x.fid).b===b).reduce((s,x)=>s+x.pax.length,0)})).sort((x,y)=>y.px-x.px||y.fl-x.fl);const mx=Math.max(1,...pop.map(p=>p.px));
+const sn=[...S.flights].sort((a,b)=>a.dep-b.dep).slice(0,30);
+return `<h1>Admin dashboard</h1><div class="stats"><div class="card"><b>${cnt("scheduled")}</b>Scheduled</div><div class="card"><b>${live.filter(f=>dk(f.dep,AP[f.a].tz)===T(f)).length}</b>Departing today</div><div class="card"><b>${cnt("delayed")}</b>Delayed</div><div class="card"><b>${cnt("cancelled")}</b>Cancelled</div><div class="card"><b>${cb.length}</b>Bookings</div><div class="card"><b>${S.users.filter(u=>u.role==="customer").length}</b>Customers</div><div class="card"><b>${AC.filter(a=>a.st==="active").length}</b>Aircraft available</div><div class="card"><b>${Math.round(bk/Math.max(cap,1)*100)}%</b>Seat occupancy</div></div>
+<h2>Route popularity</h2><p class="m">Counts exclude cancelled flights and cancelled bookings. Bars show passengers booked in this demo.</p><div class="card">${pop.map(p=>`<div style="margin:8px 0"><span>${p.k}: ${p.px} passengers on ${p.fl} flights</span><div class="bar" style="width:${Math.max(2,p.px/mx*100)}%"></div></div>`).join("")}</div>
+<h2>Add a flight</h2><div class="card"><div class="sf"><label>Flight number<input id="an" placeholder="SL200" maxlength="6"></label><label>Route<select id="ar">${RT.map((r,i)=>`<option value="${i}">${r[0]} to ${r[1]}</option>`).join("")}</select></label><label>Aircraft<select id="aa">${AC.map(a=>`<option value="${a.id}">${a.id} ${a.t} (${a.st})</option>`).join("")}</select></label><label>Departure (UTC)<input id="ad" type="datetime-local"></label><label>Economy fare (₹)<input id="af" type="number" min="500" value="4500"></label></div><div class="err" id="ae"></div><button class="bt" onclick="addFlight()">Add flight</button></div>
+<h2>Flights</h2><div class="wrap"><table><tr><th>Flight</th><th>Route</th><th>Departs (local)</th><th>Aircraft</th><th>Status</th><th>Actions</th></tr>${sn.map(f=>`<tr><td>${f.no}</td><td>${f.a} to ${f.b}</td><td>${dm(f.dep,AP[f.a].tz)} ${hm(f.dep,AP[f.a].tz)}</td><td>${f.ac}</td><td>${f.s}</td><td><button class="bt g" onclick="setS(${f.id},'delayed')">Delay 45m</button> <button class="bt r" onclick="setS(${f.id},'cancelled')">Cancel</button> <button class="bt g" onclick="setS(${f.id},'scheduled')">Restore</button></td></tr>`).join("")}</table></div><p class="m">Showing the next 30 flights. Cancelling a flight cancels its bookings with a full demo refund.</p>
+<h2>Recent admin activity</h2><div class="card">${S.log.length?S.log.slice(-8).reverse().map(l=>`${new Date(l.t).toLocaleString("en-GB")}: ${esc(l.by)} ${esc(l.a)}`).join("<br>"):"No admin actions yet."}</div><h2>Fleet</h2><div class="card">${AC.map(a=>`${a.id}: ${a.t}, ${a.cap} seats, ${a.st}`).join("<br>")}<p class="m">Aircraft in maintenance can’t be scheduled.</p></div>`}};
+const hx=b=>[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("");
+const OKC=()=>!!(window.crypto&&crypto.subtle),NOC="Sign-in needs a secure page. Open this site through http://localhost or https.";
+async function hash(pw,salt){const k=await crypto.subtle.importKey("raw",new TextEncoder().encode(pw),"PBKDF2",false,["deriveBits"]);return hx(await crypto.subtle.deriveBits({name:"PBKDF2",hash:"SHA-256",salt:new TextEncoder().encode(salt),iterations:100000},k,256))}
+async function mkUser(o){const salt=hx(crypto.getRandomValues(new Uint8Array(16)));return{id:o.id,name:o.name,phone:o.phone||"",role:o.role,salt,ph:await hash(o.pw,salt),active:true,at:Date.now()}}
+const ready=(async()=>{try{if(OKC()&&!S.users.some(u=>u.id==="admin")){S.users.push(await mkUser({id:"admin",name:"Administrator",role:"admin",pw:"Admin@123"}));save()}}catch(e){}})();
+const F={};
+async function addUser(o){if(o.name.length<2||o.name.length>60)return "Enter a full name (2 to 60 characters).";
+if(!/^[a-z0-9_]{4,20}$/.test(o.id))return "Login ID must be 4 to 20 letters, digits or underscores.";
+if(o.phone&&!/^\+?\d{10,13}$/.test(o.phone))return "Enter a phone number with 10 to 13 digits, or leave it empty.";
+if(o.pw.length<8||!/[a-z]/i.test(o.pw)||!/\d/.test(o.pw))return "Password needs at least 8 characters with a letter and a digit.";
+if(o.pw2!==undefined&&o.pw!==o.pw2)return "The two passwords don’t match.";
+if(!OKC())return NOC;await ready;const u=await mkUser({...o,role:"customer"});
+if(S.users.some(x=>x.id===o.id))return "That login ID is already taken.";S.users.push(u);save();return null}
+async function login(e){e.preventDefault();const E=m=>{$("#le").textContent=m;return false};if(!OKC())return E(NOC);await ready;
+const id=$("#li").value.trim().toLowerCase(),pw=$("#lp").value,f=F[id]||{n:0,until:0};
+if(Date.now()<f.until)return E("Too many attempts. Try again in "+Math.ceil((f.until-Date.now())/1000)+" seconds.");
+const u=S.users.find(x=>x.id===id);
+if(!u||(await hash(pw,u.salt))!==u.ph){f.n++;if(f.n>=5){f.until=Date.now()+3e4;f.n=0}F[id]=f;return E("Login ID or password is incorrect.")}
+if(!u.active)return E("This account is disabled. Contact an administrator.");
+const want=v.n==="alogin"?"admin":"customer";if(u.role!==want)return E(want==="admin"?"This is not an administrator account. Use the Customer portal.":"Administrators sign in through the Admin portal.");
+F[id]={n:0,until:0};S.user={id:u.id,name:u.name,role:u.role};save();go(u.role==="admin"?"adm":"home");return false}
+async function reg(e){e.preventDefault();const g=i=>$("#"+i).value,r=await addUser({name:g("rn").trim(),id:g("ri").trim().toLowerCase(),phone:g("rp").trim(),pw:g("rw"),pw2:g("rx")});
+if(r){$("#re").textContent=r;return false}v={n:"login",x:g("ri").trim().toLowerCase(),msg:"Account created. Now sign in with your login ID and password."};render();scrollTo(0,0);return false}
+async function admAdd(e){e.preventDefault();const g=i=>$("#"+i).value,r=await addUser({name:g("an").trim(),id:g("ai").trim().toLowerCase(),phone:g("ap").trim(),pw:g("aw")});
+if(r){$("#ce").textContent=r;return false}lg("created customer "+g("ai").trim().toLowerCase());save();render();return false}
+const cu=id=>S.users.find(u=>u.id===id&&u.role==="customer"),CE=m=>{$("#ce").textContent=m};
+function cSave(id){if(!isA())return;const u=cu(id),n=$("#cn").value.trim(),p=$("#cp").value.trim();
+if(n.length<2||n.length>60)return CE("Enter a full name (2 to 60 characters).");if(p&&!/^\+?\d{10,13}$/.test(p))return CE("Enter a phone number with 10 to 13 digits, or leave it empty.");
+u.name=n;u.phone=p;lg("updated customer "+id);save();render()}
+function cToggle(id){if(!isA())return;const u=cu(id);u.active=!u.active;lg((u.active?"enabled ":"disabled ")+"customer "+id);save();render()}
+async function cReset(id){if(!isA())return;const u=cu(id),p=$("#cw").value;if(p.length<8||!/[a-z]/i.test(p)||!/\d/.test(p))return CE("Password needs at least 8 characters with a letter and a digit.");
+u.salt=hx(crypto.getRandomValues(new Uint8Array(16)));u.ph=await hash(p,u.salt);lg("reset password for "+id);save();render()}
+function cDel(id){if(!isA())return;if(S.bookings.some(b=>b.uid===id&&b.s==="confirmed"))return CE("This customer has confirmed bookings. Cancel them first.");
+S.users=S.users.filter(u=>u.id!==id);lg("deleted customer "+id);save();go("cus")}
+function aCancel(ref){if(!isA())return;const b=S.bookings.find(x=>x.ref===ref);if(!b||b.s!=="confirmed")return;release(b,100);lg("cancelled booking "+ref);save();render()}
+Object.assign(VIEWS,{
+reg(){return `<h1>Create your account</h1><form class="card" onsubmit="return reg(event)"><div class="sf"><label>Full name<input id="rn" maxlength="60" autocomplete="name" required></label><label>Login ID<input id="ri" maxlength="20" autocomplete="username" required></label><label>Phone (optional)<input id="rp" maxlength="14" inputmode="tel"></label><label>Password<input id="rw" type="password" autocomplete="new-password" required></label><label>Confirm password<input id="rx" type="password" autocomplete="new-password" required></label><button class="bt">Create account</button></div><div class="err" id="re"></div><p class="m">Login ID: 4 to 20 letters, digits or underscores. Password: at least 8 characters with a letter and a digit.</p></form>`},
+cus(){if(!isA())return deny();const q=(v.q||"").toLowerCase(),r=S.users.filter(u=>u.role==="customer"&&(u.name+" "+u.id).toLowerCase().includes(q));
+return `<h1>Customers</h1><div class="sf"><label>Search by name or login ID<input value="${esc(v.q||"")}" onchange="v.q=this.value;render()"></label></div><div class="wrap"><table><tr><th>Name</th><th>Login ID</th><th>Phone</th><th>Bookings</th><th>Status</th><th></th></tr>${r.length?r.map(u=>`<tr><td>${esc(u.name)}</td><td>${esc(u.id)}</td><td>${esc(u.phone||"-")}</td><td>${S.bookings.filter(b=>b.uid===u.id&&b.s==="confirmed").length}</td><td>${u.active?"Active":"Disabled"}</td><td><button class="bt g" onclick="go('cdet','${u.id}')">Manage</button></td></tr>`).join(""):`<tr><td colspan="6">No customers found. Customers appear here after they create an account.</td></tr>`}</table></div>
+<h2>Add a customer</h2><form class="card" onsubmit="return admAdd(event)"><div class="sf"><label>Full name<input id="an" maxlength="60" required></label><label>Login ID<input id="ai" maxlength="20" required></label><label>Phone (optional)<input id="ap" maxlength="14"></label><label>Temporary password<input id="aw" type="password" autocomplete="new-password" required></label><button class="bt">Add customer</button></div><div class="err" id="ce"></div></form>`},
+cdet(){if(!isA())return deny();const u=cu(v.x);if(!u)return `<div class="card">Customer not found.</div>`;const bs=S.bookings.filter(b=>b.uid===u.id);
+return `<button class="lk" onclick="go('cus')">Back to customers</button><h1>${esc(u.name)}</h1><p class="m">Login ID ${esc(u.id)}. Joined ${new Date(u.at).toLocaleDateString("en-GB")}. ${u.active?"Active":"Disabled"}.</p><div class="card"><div class="sf"><label>Full name<input id="cn" value="${esc(u.name)}" maxlength="60"></label><label>Phone<input id="cp" value="${esc(u.phone)}" maxlength="14"></label><button class="bt" onclick="cSave('${u.id}')">Save details</button></div><div class="sf"><label>New temporary password<input id="cw" type="password" autocomplete="new-password"></label><button class="bt g" onclick="cReset('${u.id}')">Reset password</button><button class="bt g" onclick="cToggle('${u.id}')">${u.active?"Disable account":"Enable account"}</button><button class="bt r" onclick="cDel('${u.id}')">Delete customer</button></div><div class="err" id="ce"></div></div>
+<h2>Bookings</h2>${bs.length?bs.map(b=>{const f=fl(b.fid);return `<div class="card"><b>${b.ref}</b>, ${f.no} ${f.a} to ${f.b}, ${dm(f.dep,AP[f.a].tz)} ${hm(f.dep,AP[f.a].tz)}. ${b.pax.length} passenger(s), ${inr(b.fare*b.pax.length)}. Status: <b>${b.s}</b> ${b.s==="confirmed"&&f.dep>Date.now()?`<button class="bt r" onclick="aCancel('${b.ref}')">Cancel booking</button>`:""}</div>`}).join(""):`<div class="card">No bookings for this customer yet.</div>`}`},
+net(){const rc=routeCounts(),o=Object.keys(AP).map(c=>`<option value="${c}"${v.ap===c?" selected":""}>${c} ${AP[c].c}</option>`).join("");
+return `<h1>Route network</h1><p class="m">Planned routes drawn from the flight schedule. This is not live aircraft tracking. Line thickness shows the number of scheduled flights in the next 7 days.</p><div class="sf"><label>Airport<select onchange="v.ap=this.value;render()"><option value="">All airports</option>${o}</select></label><label>Cancelled flights<select onchange="v.cx=this.value;render()"><option value="">Excluded</option><option value="1"${v.cx?" selected":""}>Included</option></select></label></div><div id="nm" style="height:460px;border-radius:10px"></div><p class="m">Simplified map of India. Base map © OpenStreetMap contributors © CARTO when online.</p><h2>Most scheduled routes</h2><div class="card">${rc.slice(0,8).map(([k,n])=>`${k.replace("-"," and ")}: ${n} flights`).join("<br>")||"No flights scheduled."}</div>`}});
+const hsum=h=>h.types.reduce((a,t)=>({r:a.r+t.rooms,u:a.u+t.used}),{r:0,u:0});
+const tg=(rooms,used)=>{const l=rooms-used,c=l<=0?"full":l<=3?"few":"free";return{l,c,p:rooms?Math.min(100,Math.round(used/rooms*100)):100,t:l<=0?"Full: no rooms available":l<=3?"Almost full: "+l+" left":l+" available"}};
+const hroom=h=>{const s=hsum(h);return tg(s.r,s.u)};
+const STY={hours:"Few hours (up to 6 hours)",day:"One day (24 hours)"};
+const itx=s=>{const h=S.hotels.find(x=>x.id===s.hid);return(s.items||[]).map(i=>{const t=h&&h.types.find(x=>x.k===i.k);return i.q+" × "+(t?t.n:i.k)}).join(", ")};
+function freeStay(s,st){const h=S.hotels.find(x=>x.id===s.hid);if(h)(s.items||[]).forEach(i=>{const t=h.types.find(x=>x.k===i.k);if(t)t.used=Math.max(0,t.used-i.q)});s.s=st}
+function lf(admin){return `<h1>${admin?"Admin sign in":"Customer sign in"}</h1>${v.msg?`<p class="ok" role="status">${esc(v.msg)}</p>`:`<p class="m">${admin?"Staff only. Customers use the Customer portal.":"Create an account first, then sign in with your login ID and password."}</p>`}<form class="card" onsubmit="return login(event)"><div class="sf"><label>Login ID<input id="li" value="${esc(v.x||"")}" autocomplete="username" maxlength="20" required></label><label>Password<input id="lp" type="password" autocomplete="current-password" required></label><button class="bt">Sign in</button></div><div class="err" id="le"></div>${admin?`<p class="m">Demo administrator: login ID admin, password Admin@123.</p><p class="m"><button type="button" class="lk" onclick="go('land')">Back to portals</button></p>`:`<p class="m">New customer? <button type="button" class="lk" onclick="go('reg')">Create an account</button> · <button type="button" class="lk" onclick="go('land')">Back to portals</button></p>`}</form>`}
+Object.assign(VIEWS,{
+land(){return `<div class="hero"><div class="logo">Sky<b>Link</b></div><p class="sub">Fly across India</p></div><div class="sf portals"><div class="card"><h2>Customer portal</h2><p class="m">Search flights, book seats and reserve free airline hotel rooms.</p><p><button class="bt" onclick="go('login')">Customer sign in</button> <button class="bt g" onclick="go('reg')">Create account</button></p></div><div class="card"><h2>Admin portal</h2><p class="m">Manage flights, customers and hotels. Staff only.</p><p><button class="bt g" onclick="go('alogin')">Admin sign in</button></p></div></div>`},
+login(){return lf(false)},
+alogin(){return lf(true)},
+htl(){const u=S.user;if(!u||u.role!=="customer")return `<div class="card">Sign in as a customer to see airline hotels.</div>`;
+const bs=S.bookings.filter(b=>b.uid===uid()&&b.s==="confirmed"),use=[...new Set(bs.flatMap(b=>{const f=fl(b.fid);return[f.a,f.b]}))],sel=v.ap&&AP[v.ap]?v.ap:(use[0]||"DEL");
+const el=bs.filter(b=>{const f=fl(b.fid);return(f.a===sel||f.b===sel)&&!S.stays.some(s=>s.ref===b.ref&&s.ap===sel&&s.s==="confirmed")});
+const hs=S.hotels.filter(h=>h.ap===sel),my=S.stays.filter(s=>s.uid===uid()).sort((a,b)=>b.at-a.at);
+const ao=Object.keys(AP).map(c=>`<option value="${c}"${c===sel?" selected":""}>${c} ${AP[c].c}${use.includes(c)?" (your flight)":""}</option>`).join("");
+return `<h1>Free airline hotels</h1><p class="m">Passengers with a confirmed booking can stay free at partner hotels near the airport on their route: a few hours (up to 6) or one day (24 hours). Choose the room types and how many of each; the rooms must sleep all your guests, with no more rooms than guests. One stay per booking and airport. Demo only: no real rooms are held.</p><div class="sf"><label>Airport<select onchange="v.ap=this.value;render()">${ao}</select></label></div>
+${hs.map(h=>{const r=hroom(h),s=hsum(h);return `<div class="card"><b>${esc(h.name)}</b> <span class="tag ${r.c}">${r.t}</span><p class="m">${h.dist} km from ${esc(AP[sel].c)} airport (${sel}). ${s.u} of ${s.r} rooms taken.</p><div class="meter" aria-hidden="true"><i class="${r.c}" style="width:${r.p}%"></i></div><div class="wrap"><table><tr><th>Room type</th><th>Sleeps</th><th>Availability</th><th>Rooms wanted</th></tr>${h.types.map(t=>{const x=tg(t.rooms,t.used);return `<tr><td>${esc(t.n)}</td><td>${t.sleeps}</td><td><span class="tag ${x.c}">${x.t}</span></td><td>${el.length&&x.l>0?`<input id="hq${h.id}${t.k}" type="number" min="0" max="${x.l}" value="0" style="width:80px;min-height:36px" aria-label="${esc(t.n)} quantity">`:"-"}</td></tr>`}).join("")}</table></div>${el.length?`<div class="sf"><label>Booking<select id="hb${h.id}">${el.map(b=>{const f=fl(b.fid);return `<option value="${b.ref}">${b.ref}: ${f.no} ${f.a} to ${f.b}</option>`}).join("")}</select></label><label>Stay<select id="ht${h.id}"><option value="hours">${STY.hours}</option><option value="day">${STY.day}</option></select></label><label>Guests<input id="hg${h.id}" type="number" min="1" max="6" value="1"></label><button class="bt"${r.l<=0?" disabled":""} onclick="reserve('${h.id}')">${r.l<=0?"No rooms left":"Reserve free stay"}</button></div><div class="err" id="he${h.id}"></div>`:`<p class="m">Confirmed booking needed from or to ${esc(AP[sel].c)} (without an existing stay here) to reserve.</p>`}</div>`}).join("")}
+<h2>My stays</h2>${my.length?my.map(s=>{const h=S.hotels.find(x=>x.id===s.hid);return `<div class="card"><b>${s.id}</b>, ${esc(h?h.name:"Hotel")}<br>${STY[s.type]}, ${s.guests} guest(s): ${esc(itx(s))}, booking ${esc(s.ref)}. Reserved ${new Date(s.at).toLocaleString("en-GB")}. Status: <b>${s.s}</b> ${s.s==="confirmed"?`<button class="bt r" onclick="endStay('${s.id}')">Cancel stay</button>`:""}</div>`}).join(""):`<div class="card">No hotel stays yet.</div>`}`},
+hadm(){if(!isA())return deny();const act=S.stays.filter(s=>s.s==="confirmed"),all=S.hotels.reduce((a,h)=>{const s=hsum(h);return{r:a.r+s.r,u:a.u+s.u}},{r:0,u:0});
+return `<h1>Airline hotels</h1><div class="stats"><div class="card"><b>${S.hotels.length}</b>Partner hotels</div><div class="card"><b>${all.r-all.u}</b>Rooms free</div><div class="card"><b>${S.hotels.filter(h=>hroom(h).l<=0).length}</b>Hotels full</div><div class="card"><b>${act.length}</b>Active stays</div></div>
+<h2>Capacity</h2><div class="wrap"><table><tr><th>Hotel</th><th>Airport</th><th>Room type</th><th>Taken</th><th>Total rooms</th><th>Status</th></tr>${S.hotels.flatMap(h=>h.types.map(t=>{const x=tg(t.rooms,t.used);return `<tr><td>${esc(h.name)}</td><td>${h.ap}</td><td>${esc(t.n)}</td><td>${t.used}</td><td><input id="hr${h.id}${t.k}" type="number" min="1" max="200" value="${t.rooms}" style="width:90px;min-height:36px"> <button class="bt g" onclick="setRooms('${h.id}','${t.k}')">Save</button></td><td><span class="tag ${x.c}">${x.t}</span></td></tr>`})).join("")}</table></div><div class="err" id="hae"></div>
+<h2>Active stays</h2>${act.length?`<div class="wrap"><table><tr><th>Stay</th><th>Guest login</th><th>Hotel</th><th>Type</th><th>Rooms</th><th></th></tr>${act.map(s=>{const h=S.hotels.find(x=>x.id===s.hid);return `<tr><td>${s.id}</td><td>${esc(s.uid)}</td><td>${esc(h?h.name:"-")}</td><td>${STY[s.type]}</td><td>${esc(itx(s))}</td><td><button class="bt g" onclick="endStay('${s.id}',true)">Check out</button></td></tr>`}).join("")}</table></div>`:`<div class="card">No active stays.</div>`}`}});
+function reserve(hid){const h=S.hotels.find(x=>x.id===hid),u=S.user;if(!u||u.role!=="customer"||!h)return;const E=m=>{$("#he"+hid).textContent=m};
+const ref=$("#hb"+hid).value,type=$("#ht"+hid).value,g=parseInt($("#hg"+hid).value,10),b=S.bookings.find(x=>x.ref===ref&&x.uid===uid()&&x.s==="confirmed");
+if(!b)return E("Choose one of your confirmed bookings.");const f=fl(b.fid);
+if(f.a!==h.ap&&f.b!==h.ap)return E("This booking doesn’t use "+AP[h.ap].c+" airport.");
+if(!STY[type])return E("Choose a stay type.");
+if(!(g>=1&&g<=b.pax.length))return E("Guests must be between 1 and "+b.pax.length+" for this booking.");
+if(S.stays.some(s=>s.ref===ref&&s.ap===h.ap&&s.s==="confirmed"))return E("You already have a stay at this airport for this booking.");
+const items=h.types.map(t=>{const e=$("#hq"+hid+t.k);return{k:t.k,q:e?parseInt(e.value,10)||0:0}}).filter(i=>i.q!==0);
+if(!items.length)return E("Choose at least one room.");
+let n=0,cap=0;for(const i of items){const t=h.types.find(x=>x.k===i.k);if(i.q<0)return E("Room quantities can’t be negative.");if(t.rooms-t.used<i.q)return E("Only "+(t.rooms-t.used)+" "+t.n.toLowerCase()+"(s) left.");n+=i.q;cap+=i.q*t.sleeps}
+if(n>g)return E("You can’t book more rooms ("+n+") than guests ("+g+").");
+if(cap<g)return E("The chosen rooms sleep "+cap+" but you have "+g+" guest(s). Add more rooms.");
+items.forEach(i=>{h.types.find(x=>x.k===i.k).used+=i.q});
+S.stays.push({id:"ST"+Math.random().toString(36).slice(2,7).toUpperCase(),hid,uid:uid(),ref,ap:h.ap,type,guests:g,items,at:Date.now(),s:"confirmed"});save();render()}
+function endStay(id,adm){const s=S.stays.find(x=>x.id===id);if(!s||s.s!=="confirmed")return;if(adm?!isA():(!S.user||S.user.role!=="customer"||s.uid!==uid()))return;
+freeStay(s,adm?"checked out":"cancelled");if(adm)lg("checked out stay "+id);save();render()}
+function setRooms(id,k){if(!isA())return;const h=S.hotels.find(x=>x.id===id),t=h&&h.types.find(x=>x.k===k),n=parseInt($("#hr"+id+k).value,10),E=m=>{$("#hae").textContent=m};
+if(!t||!(n>=1&&n<=200))return E("Total rooms must be between 1 and 200.");if(n<t.used)return E("Total can’t be below the rooms already taken ("+t.used+").");
+t.rooms=n;lg("set "+t.n.toLowerCase()+"s at "+h.name+" to "+n);save();render()}
+let LM=null;
+const IN=[[23.9,68.2],[23.2,68.8],[22.9,70.0],[22.2,69.0],[21.0,70.0],[20.7,71.0],[21.5,72.2],[22.3,72.6],[21.1,72.7],[20.2,72.8],[19.2,72.8],[18.9,72.8],[17.0,73.3],[15.8,73.7],[14.8,74.1],[13.0,74.8],[12.0,75.2],[11.0,75.8],[10.0,76.2],[9.0,76.5],[8.1,77.5],[8.4,78.1],[9.2,79.1],[10.3,79.8],[10.9,79.9],[11.9,79.8],[13.1,80.3],[14.5,80.1],[15.8,80.9],[16.6,82.2],[17.7,83.3],[19.3,85.0],[20.3,86.7],[21.5,87.0],[21.8,88.0],[21.7,88.9],[22.5,88.9],[23.1,88.7],[24.0,88.6],[24.9,88.1],[25.4,88.2],[26.0,88.6],[26.0,89.0],[25.6,89.8],[25.2,90.3],[25.2,91.6],[24.9,92.2],[24.4,92.4],[23.8,91.9],[23.2,91.3],[22.5,92.3],[21.95,92.6],[22.5,93.1],[23.5,93.3],[24.3,93.4],[25.0,94.2],[25.8,95.0],[26.7,95.9],[27.3,96.8],[27.9,97.3],[28.5,97.3],[29.2,96.4],[29.0,95.3],[28.3,94.5],[28.0,93.5],[27.8,92.5],[27.5,91.6],[26.8,92.0],[26.8,91.0],[26.7,89.9],[26.7,89.0],[27.3,88.9],[28.1,88.8],[27.7,88.0],[26.4,88.2],[26.5,87.7],[26.4,87.2],[26.4,86.0],[26.7,85.2],[27.1,84.6],[27.4,83.9],[27.6,83.2],[27.5,82.5],[28.2,81.7],[28.8,81.0],[29.1,80.2],[29.8,80.2],[30.2,81.0],[30.8,79.8],[31.3,78.8],[31.8,78.7],[32.5,78.5],[32.7,79.3],[33.5,79.2],[34.5,78.5],[34.7,79.7],[35.3,80.3],[35.8,78.0],[35.5,77.0],[36.0,76.5],[36.8,75.2],[37.0,74.5],[36.5,73.5],[35.5,72.7],[34.8,73.0],[34.5,73.8],[33.8,74.2],[33.0,74.3],[32.5,75.0],[31.7,74.7],[31.1,74.5],[30.3,74.0],[29.8,73.8],[28.8,72.8],[28.0,72.0],[27.3,70.8],[26.2,70.0],[25.2,70.3],[24.4,71.1],[24.1,70.7],[23.9,70.0],[24.2,69.0]];
+const LK=[[9.8,80.0],[9.3,81.2],[8.0,81.8],[6.0,81.6],[5.95,80.6],[6.5,79.8],[7.8,79.8],[9.0,79.9]];
+const AN=[[[13.5,93.0],[12.2,92.9],[11.0,92.7],[11.8,92.6],[12.9,92.8]],[[10.6,92.5],[9.2,92.8],[8.1,93.5],[7.0,93.8],[8.0,93.6],[9.5,93.0]]];
+const TT={permanent:true,direction:"right",offset:[6,0],className:"apl"};
+function drawBase(){const o={color:"#ff5a5f",weight:1.4,fillColor:"#3a0f15",fillOpacity:.85,interactive:false};
+LM.getContainer().style.background="#0d0607";
+L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png",{subdomains:"abcd",maxZoom:9,attribution:"© OpenStreetMap contributors © CARTO"}).addTo(LM);
+L.polygon(LK,{...o,fillColor:"#2a1a1d"}).addTo(LM);L.polygon(IN,o).addTo(LM);AN.forEach(p=>L.polygon(p,o).addTo(LM));
+LM.fitBounds([[6,68],[36,98]])}
+const routeCounts=()=>{const g={};S.flights.filter(f=>v.cx||f.s!=="cancelled").forEach(f=>{const k=[f.a,f.b].sort().join("-");g[k]=(g[k]||0)+1});return Object.entries(g).filter(([k])=>!v.ap||k.split("-").includes(v.ap)).sort((a,b)=>b[1]-a[1])};
+function lmap(id,fn){const el=$("#"+id);if(LM){LM.remove();LM=null}if(!el)return;if(!window.L){el.innerHTML='<p class="m" style="padding:14px">The map needs an internet connection to load.</p>';return}
+LM=L.map(id,{minZoom:4,maxZoom:9,zoomSnap:.5,maxBounds:[[0,58],[42,108]]});drawBase();fn(LM);setTimeout(()=>{if(LM)LM.invalidateSize()},60)}
+const pu=c=>`<b>${c}</b> ${esc(AP[c].n)}<br>${AP[c].c}, ${AP[c].tz}<br>${S.flights.filter(f=>f.s!=="cancelled"&&(f.a===c||f.b===c)).length} planned flights`;
+const ll=c=>[AP[c].la,AP[c].lo];
+function mapRoute(a,b){lmap("lm",m=>{Object.keys(AP).forEach(c=>L.circleMarker(ll(c),{radius:c===a||c===b?8:4,color:"#ffd166",fillOpacity:.8}).addTo(m).bindPopup(pu(c)).bindTooltip(c,TT));L.polyline([ll(a),ll(b)],{color:"#ffd166",weight:3,dashArray:"8 6"}).addTo(m)})}
+function mapNet(){lmap("nm",m=>{routeCounts().forEach(([k,n])=>{const[a,b]=k.split("-");L.polyline([ll(a),ll(b)],{color:"#ff4d5a",weight:1+n/4,opacity:.75}).addTo(m).bindPopup(`${a} and ${b}: ${n} planned flights`)});Object.keys(AP).forEach(c=>L.circleMarker(ll(c),{radius:5,color:"#ffd166",fillOpacity:.9}).addTo(m).bindPopup(pu(c)).bindTooltip(c,TT))})}
+function book(id){const f=fl(id),u=S.user,E=m=>{$("#err").textContent=m};
+if(!u||u.role!=="customer")return E("Sign in as a customer to book.");
+if(["cancelled","departed","arrived"].includes(f.s)||f.dep<Date.now())return E("This flight can’t be booked.");
+const k=$("#cl").value,c=f.cls[k],pax=[];if(!c)return E("Choose a valid class.");
+for(let i=0;i<Q.pax;i++){const n=$("#pn"+i).value.trim(),m=$("#pm"+i).value;if(n.length<2||n.length>60)return E("Enter each passenger’s name (2 to 60 characters).");if(!MEALS.includes(m))return E("Choose a valid meal.");pax.push({n,m})}
+if(c.cap-c.bk<pax.length)return E("Not enough seats left in that class.");
+let ref;do{ref="SL"+Math.random().toString(36).slice(2,8).toUpperCase()}while(S.bookings.some(b=>b.ref===ref));
+c.bk+=pax.length;S.bookings.push({ref,fid:id,k,pax,s:"confirmed",uid:uid(),fare:c.fare,at:Date.now()});save();go("conf",ref)}
+function release(b,pct){const f=fl(b.fid);b.s="cancelled";b.pct=pct;f.cls[b.k].bk-=b.pax.length;
+S.stays.filter(s=>s.ref===b.ref&&s.s==="confirmed").forEach(s=>freeStay(s,"cancelled"))}
+function cancel(ref){const b=S.bookings.find(x=>x.ref===ref&&S.user&&x.uid===uid()),f=b&&fl(b.fid);if(!b||b.s!=="confirmed"||f.dep<=Date.now())return;
+release(b,(f.dep-Date.now())>=864e5?100:50);save();render()}
+function setS(id,s){const f=fl(id);if(s==="cancelled"&&f.s!=="cancelled"){S.bookings.filter(b=>b.fid===id&&b.s==="confirmed").forEach(b=>release(b,100));f.rs="Cancelled by admin (demo)"}
+else if(s==="delayed"){f.eta=45*6e4;f.rs="Demo operational delay"}else{f.eta=0;f.rs=""}
+f.s=s;lg("set "+f.no+" "+f.a+"-"+f.b+" to "+s);save();render()}
+function addFlight(){const E=m=>{$("#ae").textContent=m},no=$("#an").value.trim().toUpperCase(),r=RT[+$("#ar").value],ac=AC.find(a=>a.id===$("#aa").value),dv=$("#ad").value,fare=+$("#af").value;
+if(!/^SL\d{3,4}$/.test(no))return E("Flight number must look like SL200.");
+if(!dv)return E("Choose a departure time.");const dep=Date.parse(dv+"Z");
+if(!(dep>Date.now()))return E("Departure must be in the future.");
+if(!(fare>=500&&fare<=200000))return E("Fare must be between ₹500 and ₹200,000.");
+if(ac.st!=="active")return E(ac.id+" is under "+ac.st+" and can’t be scheduled.");
+const arr=dep+Math.round(km(r[0],r[1])/780*60+30)*6e4,c=clash(S.flights,ac.id,dep,arr);
+if(c)return E("Aircraft conflict: "+ac.id+" is already on "+c.no+" at that time (a 60 minute turnaround is required).");
+if(S.flights.some(f=>f.no===no&&f.dep===dep))return E("That flight number already departs at that time.");
+S.flights.push({id:Math.max(0,...S.flights.map(f=>f.id))+1,no,a:r[0],b:r[1],dep,arr,ac:ac.id,s:"scheduled",rs:"",eta:0,cls:mk(ac,Math.round(fare),[0,0])});lg("added flight "+no);save();render()}
+function render(){if(S.user){const cur=S.users.find(x=>x.id===S.user.id);if(!cur||!cur.active){S.user=null;save()}}
+const G=["land","login","alogin","reg"];if(!S.user&&!G.includes(v.n))v={n:"land"};if(S.user&&G.includes(v.n))v={n:S.user.role==="admin"?"adm":"home"};
+const u=S.user,t=(n,l)=>`<button onclick="go('${n}')"${v.n===n?' aria-current="page"':""}>${l}</button>`;
+$("#nav").innerHTML=u?t("home","Home")+t("res","Flights")+t("net","Route map")+(u.role==="customer"?t("my","My bookings")+t("htl","Free hotels"):"")+(u.role==="admin"?t("adm","Admin")+t("cus","Customers")+t("hadm","Hotels"):"")+`<button onclick="S.user=null;save();go('land')">Sign out (${esc(u.id)})</button>`:t("land","Home")+t("login","Customer sign in")+t("alogin","Admin sign in")+t("reg","Create account");
+try{$("#main").innerHTML=VIEWS[v.n]();if(v.n==="det"){const f=fl(v.x);mapRoute(f.a,f.b)}if(v.n==="net")mapNet()}catch(e){$("#main").innerHTML=`<div class="card">Something went wrong loading this page. <button class="bt" onclick="reset()">Reset data</button></div>`}}
+render();
+</script>
+</body>
+</html>
